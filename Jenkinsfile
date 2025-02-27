@@ -1,35 +1,14 @@
-pipeline {
-    agent any
 
-    environment {
-        ANDROID_HOME = "$HOME/Android/Sdk"
-        ANDROID_SDK_ROOT = "$HOME/Android/Sdk"
-        PATH = "$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+node {
+    checkout scm
+    docker.image('node:12').inside() {
+        sh 'export ANDROID_HOME="$HOME/Android/Sdk"'
+        sh 'export ANDROID_SDK_ROOT="$HOME/Android/Sdk"'
+        sh 'export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"'
+        sh 'chmod +x gradlew'
+        sh './gradlew clean'
+        sh './gradlew app:asembleRelease'
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Setup Gradle') {
-            steps {
-                sh './gradlew clean'
-            }
-        }
-
-        stage('Build APK') {
-            steps {
-                sh './gradlew assembleDebug'
-            }
-        }
-
-        stage('Archive APK') {
-            steps {
-                archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
-            }
-        }
-    }
 }
+
